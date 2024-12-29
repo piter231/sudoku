@@ -22,20 +22,18 @@ fn get_possible(tab : [bool; DIM+1]) -> usize{
     }
     return 0;
 }
-
-fn encode_position(i: usize, j : usize) -> usize{
-    return i*DIM+j;
+fn create_with_only_one(k : usize) ->  [bool; DIM+1]{
+    let mut out : [bool; DIM+1] = [false; DIM+1];
+    out[k]=true;
+    return out;
 }
 
-fn _decode_position(p:usize) -> (usize, usize) {
-    return (p/DIM, p%DIM);
-}
 
-fn create_possible_count(possible : [[[bool; DIM+1]; DIM]; DIM] ) -> [Vec<usize>; DIM+1]{
-    let mut possible_count : [Vec<usize>; DIM+1] = Default::default();
+fn create_possible_count(possible : [[[bool; DIM+1]; DIM]; DIM] ) -> [Vec<(usize, usize)>; DIM+1]{
+    let mut possible_count : [Vec<(usize, usize)>; DIM+1] = Default::default();
     for i in 0..DIM{
         for j in 0..DIM{
-            possible_count[count_possible(possible[i][j])].push(encode_position(i, j));
+            possible_count[count_possible(possible[i][j])].push((i, j));
         }
     }
     return possible_count;
@@ -90,7 +88,7 @@ fn solve(mut possible : [[[bool; DIM+1]; DIM]; DIM] ){
             for j in 0..DIM{
                 let number_of_possibilities=count_possible(possible[i][j]);
                 if number_of_possibilities==0{
-                    println!("impossible in this instance");
+                    //println!("impossible in this instance");
                     return;
                 }
                 else if number_of_possibilities==1{
@@ -119,17 +117,39 @@ fn solve(mut possible : [[[bool; DIM+1]; DIM]; DIM] ){
         done_curr=possible_count[1].len();
 
         if possible_count[0].len()>0{
-            println!("impossible in this instance");
+            //println!("impossible in this instance");
             return;
         }
-       // print_possible(possible);
+        /*
+       print_possible(possible);
        print_sudoku_from_possible(possible);
        for xd in possible_count{
             print!("{} ", xd.len());
        }
        println!();
+       */
     }
-    //solve(possible);
+    if done_curr==DIM*DIM{
+        solve(possible);
+    }
+    else{
+        for k in 2..DIM+1{
+            if possible_count[k].len()>0 {
+                for (i,j) in possible_count[k].clone(){
+                    let old_array=possible[i][j];
+                    for d in 1..DIM+1{
+                        if old_array[d]{
+                            possible[i][j]=create_with_only_one(d);
+                            solve(possible);
+                        }
+                    }
+                    break;
+                }
+                break;
+            }
+        }
+    }
+
 }
 
 fn main(){
@@ -160,5 +180,6 @@ fn main(){
             }
         }
     }
+    
     solve(possible);
 }
